@@ -18,6 +18,14 @@ const createMeetupDataValidateRules = {
   // id,
 };
 
+const rsvpMeetupValidateRules = {
+  meetup: 'required|integer',
+  user: 'required|integer',
+  response: 'required',
+  // createdOn.
+  // id,
+};
+
 /* GET: get all meetups  */
 router.get('/', async (req, res) => {
   try {
@@ -47,6 +55,20 @@ router.post('/', async (req, res) => {
   try {
     const user = await meetupModule.createMeetup(req.body);
     return responseHelper.endResponse(res, HttpStatus.OK, user);
+  } catch (error) {
+    return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);
+  }
+});
+
+/* PATCH: RSVP  a  meetup. */
+router.patch('/:meetupid/rsvp', async (req, res) => {
+  const validation = new Validator(req.params, rsvpMeetupValidateRules);
+  if (validation.fails()) {
+    return responseHelper.endResponse(res, HttpStatus.UNPROCESSABLE_ENTITY, validation.errors);
+  }
+  try {
+    const meetup = await meetupModule.meetupRSVP(req.params.meetupId, false);
+    return responseHelper.endResponse(res, HttpStatus.OK, meetup);
   } catch (error) {
     return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);
   }

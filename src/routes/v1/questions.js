@@ -10,11 +10,11 @@ const router = express.Router();
 
 const createQuestionDataValidateRules = {
   createdOn: 'required',
-  createdBy: 'array',
-  meetup: 'required',
+  createdBy: 'integer|required',
+  meetup: 'integer|required',
   title: 'required',
   body: 'required',
-  votes: 'required',
+  votes: 'integer',
   // id,
 };
 

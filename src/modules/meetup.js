@@ -35,6 +35,7 @@ class Meetup {
   createMeetup(meetupData) {
     return new Promise((resolve) => {
       meetupData.id = this.meetupModel.length;
+      meetupData.happeningOn = new Date();
       this.meetupModel.push(meetupData);
       return resolve(meetupData);
     });
