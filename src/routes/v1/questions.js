@@ -54,7 +54,7 @@ router.patch('/:questionId/upvote', async (req, res) => {
     return responseHelper.endResponse(res, HttpStatus.UNPROCESSABLE_ENTITY, validation.errors);
   }
   try {
-    const question = await questionsModule.upvoteQuestion(req.params.questionId);
+    const question = await questionsModule.voteQuestion(req.params.questionId);
     return responseHelper.endResponse(res, HttpStatus.OK, question);
   } catch (error) {
     return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);
@@ -68,7 +68,7 @@ router.patch('/:questionId/downvote', async (req, res) => {
     return responseHelper.endResponse(res, HttpStatus.UNPROCESSABLE_ENTITY, validation.errors);
   }
   try {
-    const question = await questionsModule.downvoteQuestion(req.params.questionId);
+    const question = await questionsModule.voteQuestion(req.params.questionId, false);
     return responseHelper.endResponse(res, HttpStatus.OK, question);
   } catch (error) {
     return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);

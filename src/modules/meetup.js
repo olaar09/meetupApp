@@ -24,7 +24,7 @@ class Meetup {
 
   getMeetup(meetupId) {
     return new Promise((resolve, reject) => {
-      const meetup = this.meetupModel.find(x => x.id === meetupId);
+      const meetup = this.meetupModel.find(x => x.id === parseInt(meetupId, 10));
       if (meetup) {
         return resolve(meetup);
       }
@@ -62,6 +62,7 @@ class Meetup {
   //  });
   // }
 
+  // Todo needs more info
   meetupRSVP() {
     this.meetups = ['meetup one', 'meetup two', 'meetup three'];
     return this.meetups;

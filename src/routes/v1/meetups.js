@@ -31,8 +31,8 @@ router.get('/', async (req, res) => {
 /* GET: get a specific meetup  */
 router.get('/:id', async (req, res) => {
   try {
-    const meetups = await meetupModule.getMeetup(req.params.id);
-    return responseHelper.endResponse(res, HttpStatus.OK, meetups);
+    const meetup = await meetupModule.getMeetup(req.params.id);
+    return responseHelper.endResponse(res, HttpStatus.OK, meetup);
   } catch (error) {
     return responseHelper.endResponse(res, HttpStatus.NOT_FOUND);
   }

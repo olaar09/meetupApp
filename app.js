@@ -28,9 +28,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Authenticate request and Add needed data to request object
 app.use(async (req, res, next) => {
 // routes to exlude from authorization
-  if (req.originalUrl === '/users/create-admin'
-      || (req.originalUrl === '/users' && req.method === 'POST')
-      || (req.originalUrl === '/users/login' && req.method === 'POST')
+  if (req.originalUrl === '/v1/users/create-admin'
+      || (req.originalUrl === '/v1/users' && req.method === 'POST')
+      || (req.originalUrl === '/v1/users/login' && req.method === 'POST')
   ) {
     return next();
   }
@@ -52,10 +52,10 @@ app.use(async (req, res, next) => {
 });
 
 
-app.use('v1/', indexRouter);
-app.use('v1/meetups', meetupsRouter);
-app.use('v1/questions', questionsRouter);
-app.use('v1/users', usersRouter);
+app.use('/', indexRouter);
+app.use('/v1/meetups', meetupsRouter);
+app.use('/v1/questions', questionsRouter);
+app.use('/v1/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
