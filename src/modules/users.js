@@ -64,20 +64,18 @@ class User {
       if (user) {
         return resolve(User.returnUserData(user));
       }
-      return reject(new this.UserNotFoundError('user not found'));
+      return reject(new this.NotFoundErr('user not found'));
     });
   }
 
 
   authUser(token) {
-    console.log(token);
-    
     return new Promise((resolve, reject) => {
       const user = this.userModel.find(x => x.jwtToken === token);
       if (user) {
         return resolve(User.returnUserData(user));
       }
-      return reject(new UserAuthFailedError('token is invalid'));
+      return reject(new this.AuthFailedErr('token is invalid'));
     });
   }
 
@@ -90,7 +88,7 @@ class User {
       if (user) {
         return resolve(User.returnUserData(user));
       }
-      return reject(new UserAuthFailedError('user not found'));
+      return reject(new this.AuthFailedErr('user not found'));
     });
   }
 
@@ -99,21 +97,19 @@ class User {
   // insert;
   // TODO test that data doesnt go through with ovalid input;
   // TODO.. hash password before push the data;
-    return new Promise((resolve) => {
+    return new Promise(async (resolve) => {
       this.userModel.push(userData);
       return resolve(this.getUser(userData.id));
     });
   }
 
   static returnUserData(userData) {
-    return new Promise((resolve) => {
-      const getUserData = {};
-      Object.assign(userData, getUserData);
+    // const getUserData = {};
+    // Object.assign(userData, getUserData);
 
-      // do stuff with userData
-      delete getUserData.password;
-      return resolve(getUserData);
-    });
+    // do stuff with userData
+    // delete getUserData.password;
+    return userData;
   }
 }
 
