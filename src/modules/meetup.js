@@ -40,16 +40,16 @@ class Meetup {
     });
   }
 
-  removeMeetup(meetupId) {
-    return new Promise((resolve) => {
-      for (let index = 0; index < this.meetupModel.length; index += 1) {
-        if (this.meetupModel[index].id === meetupId) {
-          this.meetupModel.splice(index, 1);
-        }
-      }
-      return resolve(true);
-    });
-  }
+  // removeMeetup(meetupId) {
+  //   return new Promise((resolve) => {
+  //    for (let index = 0; index < this.meetupModel.length; index += 1) {
+  //       if (this.meetupModel[index].id === meetupId) {
+  //         this.meetupModel.splice(index, 1);
+  //       }
+  //     }
+  //     return resolve(true);
+  //   });
+  // }
 
   // updateMeetups(meetupId) {
   //  return new Promise((resolve) => {

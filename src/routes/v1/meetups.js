@@ -2,8 +2,8 @@ const express = require('express');
 const HttpStatus = require('http-status-codes');
 const Validator = require('validatorjs');
 
-const getModule = require('../modules');
-const responseHelper = require('../helpers/responseHelper');
+const getModule = require('../../modules');
+const responseHelper = require('../../helpers/responseHelper');
 
 const meetupModule = getModule('meetups');
 const router = express.Router();
