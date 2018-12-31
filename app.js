@@ -5,10 +5,13 @@ const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 
 const indexRouter = require('./src/routes/index');
-//  const usersRouter = require('./src/routes/users');
+const usersRouter = require('./src/routes/users');
 const meetupsRouter = require('./src/routes/meetups');
 const questionsRouter = require('./src/routes/questions');
 
+const getModule = require('./src/modules');
+
+const userModule = getModule('users');
 const app = express();
 
 // view engine setup
@@ -22,7 +25,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Authenticate request and Add needed data to request object
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
 // routes to exlude from authorization
   if (req.originalUrl === '/user/create-admin'
       || req.originalUrl === '/user/create'
@@ -30,28 +33,28 @@ app.use((req, res, next) => {
   ) {
     return next();
   }
-  
-  // every other route are authenticated through jwt authentication token
-  AuthHelper.auth(req, isAdminRequest(req.originalUrl)? adminModel: userModel )
-      .then((userData) => {
-          if (userData) {
-              // attach authenticated user data so req object now contains userData and user data is now available to all controller methods
-              req.userData = userData;
-              next();
-          } else {
-              return res.status(401).end('Auth failed');
-          }
-      })
-      .catch((err) => {
-          console.log(err);
-          return res.status(400).end('Could not complete request')
-      })
+
+  // every other route are authenticated
+  // through jwt authentication token
+  try {
+    const user = await userModule.authUser(req.headers.authtoken);
+    if (user) {
+      req.userData = user;
+      next();
+    } else {
+      return res.status(401).end('Auth failed');
+    }
+  } catch (error) {
+    return res.status(401).end('Auth failed');
+  }
+  return false;
 });
 
 
 app.use('/', indexRouter);
 app.use('/meetups', meetupsRouter);
 app.use('/questions', questionsRouter);
+app.use('/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
