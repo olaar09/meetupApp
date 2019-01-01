@@ -1,5 +1,8 @@
 
 const BaseErrClass = require('../helpers/BaseErrorClass');
+const ErrorStrings = require('../helpers/repsonseStringHelper');
+
+const radix = 10;
 
 class MeetupNotFoundError extends BaseErrClass {
   constructor(...args) {
@@ -8,27 +11,45 @@ class MeetupNotFoundError extends BaseErrClass {
   }
 }
 
+class RSVPError extends BaseErrClass {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace(this, RSVPError);
+  }
+}
+
 class Meetup {
   constructor() {
     this.meetupModel = [];
+    this.rsvpModel = [];
+    this.MeetupNotFoundError = MeetupNotFoundError;
+    this.RSVPError = RSVPError;
   }
 
-  getMeetups(isUpcoming = false) {
+  getMeetups() {
     return new Promise((resolve) => {
-      if (isUpcoming) {
-        return resolve(this.meetupModel.filter(x => x.isUpcoming === true));
-      }
       return resolve(this.meetupModel);
+    });
+  }
+
+  getUpcomingMeetups(userId) {
+    return new Promise((resolve) => {
+      const rsvps = this.rsvpModel
+        .filter(x => x.user === userId) // get all rsvps
+        .map(x => x.meetup); // return only the meetp id
+
+      const upcomingMeetups = this.meetupModel.filter(x => rsvps.indexOf(x.id) !== -1);
+      return resolve(upcomingMeetups);
     });
   }
 
   getMeetup(meetupId) {
     return new Promise((resolve, reject) => {
-      const meetup = this.meetupModel.find(x => x.id === parseInt(meetupId, 10));
+      const meetup = this.meetupModel.find(x => x.id === parseInt(meetupId, radix));
       if (meetup) {
         return resolve(meetup);
       }
-      return reject(new MeetupNotFoundError());
+      return reject(new MeetupNotFoundError(ErrorStrings.meetupNotFound));
     });
   }
 
@@ -64,9 +85,21 @@ class Meetup {
   // }
 
   // Todo needs more info
-  meetupRSVP() {
-    this.meetups = ['meetup one', 'meetup two', 'meetup three'];
-    return this.meetups;
+  meetupRSVP(rsvpData) {
+    return new Promise((resolve, reject) => {
+      const meetup = this.meetupModel.find(x => x.id === parseInt(rsvpData.meetup, radix));
+      if (meetup) {
+        const hasRsvped = this.rsvpModel.find(x => x.user === parseInt(rsvpData.user, radix)
+         && x.meetup, radix === parseInt(rsvpData.meetup, radix));
+        if (!hasRsvped) {
+          this.rsvpModel.push(rsvpData);
+          // return all rsvp
+          return resolve(this.rsvpModel);
+        }
+        reject(new RSVPError(ErrorStrings.AlreadyRsvped));
+      }
+      return reject(new MeetupNotFoundError(ErrorStrings.meetupNotFound));
+    });
   }
 }
 

@@ -3,6 +3,7 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const HttpStatus = require('http-status-codes');
 
 const indexRouter = require('./src/routes/v1/index');
 const usersRouter = require('./src/routes/v1/users');
@@ -11,9 +12,12 @@ const questionsRouter = require('./src/routes/v1/questions');
 
 const getModule = require('./src/modules');
 const responseHelper = require('./src/helpers/responseHelper');
+const ErrorStrings = require('./src/helpers/repsonseStringHelper');
+const { getUserId } = require('./src/helpers/sessionHelper');
 
 const userModule = getModule('users');
 const app = express();
+
 
 // view engine setup
 app.set('views', path.join(__dirname, './src/views'));
@@ -24,6 +28,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Authenticate request and Add needed data to request object
 app.use(async (req, res, next) => {
@@ -41,12 +46,13 @@ app.use(async (req, res, next) => {
     const user = await userModule.authUser(req.headers.authtoken);
     if (user) {
       req.userData = user;
+      req.getUserId = () => getUserId(req);
       next();
     } else {
-      return responseHelper.endResponse(res, 401, 'Auth failed');
+      return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorStrings.authFailed);
     }
   } catch (error) {
-    return responseHelper.endResponse(res, 401, 'Auth failed');
+    return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorStrings.authFailed);
   }
   return false;
 });

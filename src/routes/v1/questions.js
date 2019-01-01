@@ -9,17 +9,17 @@ const questionsModule = getModule('questions');
 const router = express.Router();
 
 const createQuestionDataValidateRules = {
-  createdOn: 'required',
   createdBy: 'integer|required',
   meetup: 'integer|required',
   title: 'required',
   body: 'required',
   votes: 'integer',
+  // createdOn: 'required',
   // id,
 };
 
 const upvoteDownVoteValidations = {
-  questionId: 'required',
+  questionId: 'required|integer',
 };
 
 
@@ -29,7 +29,7 @@ router.get('/', async (req, res) => {
     const questions = await questionsModule.getQuestions();
     return responseHelper.endResponse(res, HttpStatus.OK, questions);
   } catch (error) {
-    return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);
+    return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 });
 
@@ -40,10 +40,10 @@ router.post('/', async (req, res) => {
     return responseHelper.endResponse(res, HttpStatus.UNPROCESSABLE_ENTITY, validation.errors);
   }
   try {
-    const question = await questionsModule.createMeetup(req.body);
+    const question = await questionsModule.createQuestion(req.body);
     return responseHelper.endResponse(res, HttpStatus.OK, question);
   } catch (error) {
-    return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);
+    return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 });
 
@@ -57,7 +57,10 @@ router.patch('/:questionId/upvote', async (req, res) => {
     const question = await questionsModule.voteQuestion(req.params.questionId);
     return responseHelper.endResponse(res, HttpStatus.OK, question);
   } catch (error) {
-    return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);
+    if (error instanceof questionsModule.questionNotFoundError) {
+      return responseHelper.endResponse(res, HttpStatus.NOT_FOUND, 'question not found');
+    }
+    return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 });
 
@@ -71,6 +74,9 @@ router.patch('/:questionId/downvote', async (req, res) => {
     const question = await questionsModule.voteQuestion(req.params.questionId, false);
     return responseHelper.endResponse(res, HttpStatus.OK, question);
   } catch (error) {
+    if (error instanceof questionsModule.questionNotFoundError) {
+      return responseHelper.endResponse(res, HttpStatus.NOT_FOUND, 'question not found');
+    }
     return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);
   }
 });

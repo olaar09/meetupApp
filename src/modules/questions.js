@@ -12,6 +12,7 @@ class QuestionNotFoundError extends BaseErrClass {
 class Questions {
   constructor() {
     this.questionModel = [];
+    this.questionNotFoundError = QuestionNotFoundError;
   }
 
   getQuestions() {
@@ -31,6 +32,8 @@ class Questions {
   createQuestion(questionData) {
     return new Promise((resolve) => {
       questionData.id = this.questionModel.length;
+      questionData.createdOn = new Date();
+      questionData.votes = 0;
       this.questionModel.push(questionData);
       return resolve(questionData);
     });
