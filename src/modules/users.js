@@ -1,70 +1,101 @@
 
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+
+const BaseErrClass = require('../helpers/BaseErrorClass');
+
+// const errCodes = require('../helpers/appErrorCodeHelper');
+// const errStrings = require('../helpers/repsonseStringHelper');
+
+const CRYPTO_SALT = 8;
+
+// TODO move to .env;
+const JWT_SECRET = 'myquestionier-dummyapp';
+
+class UserAuthFailedError extends BaseErrClass {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace(this, UserAuthFailedError);
+  }
+}
+
+
+class UserNotFoundError extends Error {
+  constructor(...args) {
+    super(...args);
+    Error.captureStackTrace(this, UserNotFoundError);
+  }
+}
+
+// Important todo user error codes;
 class User {
   constructor() {
-    this.userModel = [
-      {
-        id: 1,
-        name: 'Saboki Demola',
-        email: 'saboki@example.com',
-        password: '1111111',
-        isAdmin: true,
-        jwtToken: 'o45y78werufiodjlkcxeds',
-      },
-      {
-        id: 2,
-        name: 'Test User',
-        email: 'saboki@example.com',
-        password: '1111111',
-        isAdmin: false,
-        jwtToken: 'iejafklnvcfsjdknzv849reiod',
-      },
-    ];
+    this.userModel = [];
+    this.AuthFailedErr = UserAuthFailedError;
+    this.NotFoundErr = UserNotFoundError;
   }
 
   getUser(userId) {
-    const user = this.userModel.find(x => x.id === userId);
-    if (user) {
-      return User.returnUserData(user);
-    }
-    return false;
+    return new Promise((resolve, reject) => {
+      const user = this.userModel.find(x => x.id === parseInt(userId, 10));
+      if (user) {
+        return resolve(User.returnUserData(user));
+      }
+      return reject(new this.NotFoundErr('user not found'));
+    });
   }
 
 
   authUser(token) {
-    const user = this.userModel.find(x => x.jwtToken === token);
-    if (user) {
-      return User.returnUserData(user);
-    }
-    return false;
+    return new Promise((resolve, reject) => {
+      const user = this.userModel.find(x => x.jwtToken === token);
+      if (user) {
+        return resolve(User.returnUserData(user));
+      }
+      return reject(new this.AuthFailedErr('token is invalid'));
+    });
   }
 
   loginUser(userData) {
-  // TODO.. hash password before push the data;
-  // TODO delete password before returning;
-    const user = this.userModel.find(x => x.email === userData.email
-      && x.password === userData.password);
-    if (user) {
-      return User.returnUserData(user);
-    }
-    return false;
+    return new Promise((resolve, reject) => {
+      const user = this.userModel.find(x => x.email === userData.email);
+      if (user) {
+        const passwordIsValidbcrypt = bcrypt.compareSync(userData.password, user.password);
+        if (!passwordIsValidbcrypt) {
+          return reject(new this.AuthFailedErr('password incorrect'));
+        }
+        const userJwt = User.getSignJWT(user.id);
+        return resolve({ userJwt, userData: User.returnUserData(user) });
+      }
+      return reject(new this.AuthFailedErr('user not found'));
+    });
   }
 
   createUser(userData) {
-  // validate data;
-  // insert;
-  // TODO test that data doesnt go through with ovalid input;
-  // TODO.. hash password before push the data;
-
-    this.userModel.push(userData);
-    return this.getUser(userData.id);
+    return new Promise(async (resolve) => {
+      userData.id = this.userModel.length;
+      userData.registered = new Date();
+      const userJwt = User.getSignJWT(userData.id);
+      userData.password = bcrypt.hashSync(userData.password, CRYPTO_SALT);
+      this.userModel.push(userData);
+      return resolve({ userJwt, userData: User.returnUserData(userData) });
+    });
   }
 
   static returnUserData(userData) {
-    const getUserData = userData;
+    const getUserData = {};
+    Object.assign(getUserData, userData);
 
     // do stuff with userData
     delete getUserData.password;
     return getUserData;
+  }
+
+  static getSignJWT(userId) {
+    return jwt.sign({ id: userId }, JWT_SECRET, {
+      // expires in 365 days
+      expiresIn: '365d',
+    });
   }
 }
 

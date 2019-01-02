@@ -3,13 +3,21 @@ const express = require('express');
 const path = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const HttpStatus = require('http-status-codes');
 
-const indexRouter = require('./src/routes/index');
-//  const usersRouter = require('./src/routes/users');
-const meetupsRouter = require('./src/routes/meetups');
-const questionsRouter = require('./src/routes/questions');
+const indexRouter = require('./src/routes/v1/index');
+const usersRouter = require('./src/routes/v1/users');
+const meetupsRouter = require('./src/routes/v1/meetups');
+const questionsRouter = require('./src/routes/v1/questions');
 
+const getModule = require('./src/modules');
+const responseHelper = require('./src/helpers/responseHelper');
+const ErrorStrings = require('./src/helpers/repsonseStringHelper');
+const { getUserId } = require('./src/helpers/sessionHelper');
+
+const userModule = getModule('users');
 const app = express();
+
 
 // view engine setup
 app.set('views', path.join(__dirname, './src/views'));
@@ -21,37 +29,46 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
+
 // Authenticate request and Add needed data to request object
-app.use((req, res, next) => {
+app.use(async (req, res, next) => {
 // routes to exlude from authorization
-  if (req.originalUrl === '/user/create-admin'
-      || req.originalUrl === '/user/create'
-      || req.originalUrl === '/user/login'
+  if (req.originalUrl === '/v1/users/create-admin'
+      || (req.originalUrl === '/v1/users' && req.method === 'POST')
+      || (req.originalUrl === '/')
+      || (req.originalUrl === '/v1/users/login' && req.method === 'POST')
   ) {
     return next();
   }
-  
-  // every other route are authenticated through jwt authentication token
-  AuthHelper.auth(req, isAdminRequest(req.originalUrl)? adminModel: userModel )
-      .then((userData) => {
-          if (userData) {
-              // attach authenticated user data so req object now contains userData and user data is now available to all controller methods
-              req.userData = userData;
-              next();
-          } else {
-              return res.status(401).end('Auth failed');
-          }
-      })
-      .catch((err) => {
-          console.log(err);
-          return res.status(400).end('Could not complete request')
-      })
+
+  // every other route are authenticated
+  // through jwt authentication token
+  try {
+    const user = await userModule.authUser(req.headers.authtoken);
+    if (user) {
+      req.userData = user;
+      req.getUserId = () => getUserId(req);
+      next();
+    } else {
+      return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorStrings.authFailed);
+    }
+  } catch (error) {
+    if (error instanceof userModule.AuthFailedErr) {
+      return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorStrings.authFailed);
+    }
+    return responseHelper.endResponse(
+      res,
+      HttpStatus.INTERNAL_SERVER_ERROR, ErrorStrings.internalServerError,
+    );
+  }
+  return false;
 });
 
 
 app.use('/', indexRouter);
-app.use('/meetups', meetupsRouter);
-app.use('/questions', questionsRouter);
+app.use('/v1/meetups', meetupsRouter);
+app.use('/v1/questions', questionsRouter);
+app.use('/v1/users', usersRouter);
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {
@@ -59,7 +76,7 @@ app.use((req, res, next) => {
 });
 
 // error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};
