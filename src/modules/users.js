@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const BaseErrClass = require('../helpers/BaseErrorClass');
+const UserModel = require('../data/userModel');
 
 // const errCodes = require('../helpers/appErrorCodeHelper');
 // const errStrings = require('../helpers/repsonseStringHelper');
@@ -27,10 +28,10 @@ class UserNotFoundError extends Error {
   }
 }
 
-// Important todo user error codes;
+
 class User {
   constructor() {
-    this.userModel = [];
+    this.userModel = new UserModel();
     this.AuthFailedErr = UserAuthFailedError;
     this.NotFoundErr = UserNotFoundError;
   }
