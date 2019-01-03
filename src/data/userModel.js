@@ -1,9 +1,9 @@
 const BaseModel = require('./BaseModel');
 
 class UserModel extends BaseModel {
-  constructor(tableName) {
+  constructor() {
+    const tableName = 'appuser';
     super(tableName);
-    this.table = tableName;
   }
 }
 

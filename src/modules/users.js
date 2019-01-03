@@ -72,14 +72,29 @@ class User {
     });
   }
 
-  createUser(userData) {
-    return new Promise(async (resolve) => {
-      userData.id = this.userModel.length;
-      userData.registered = new Date();
-      const userJwt = User.getSignJWT(userData.id);
+  createUser(userData, isAdmin = false) {
+    return new Promise(async (resolve, reject) => {
       userData.password = bcrypt.hashSync(userData.password, CRYPTO_SALT);
-      this.userModel.push(userData);
-      return resolve({ userJwt, userData: User.returnUserData(userData) });
+      userData.isAdmin = isAdmin;
+      try {
+        const newUser = await this.userModel.push({
+          columnNames: ['firstname', 'lastname', 'othername', 'phoneNumber', 'email', 'username', 'isAdmin', 'password'],
+          columnValues: [
+            userData.firstname,
+            userData.lastname,
+            userData.othername,
+            userData.phoneNumber,
+            userData.email,
+            userData.username,
+            userData.isAdmin,
+            userData.password,
+          ],
+        });
+        const userJwt = User.getSignJWT(newUser.id);
+        return resolve({ userJwt, userData: User.returnUserData(newUser[0]) });
+      } catch (error) {
+        return reject(error);
+      }
     });
   }
 

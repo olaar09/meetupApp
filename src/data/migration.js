@@ -3,7 +3,7 @@ const client = require('./connectToDb');
 
 const queries = [
   // 'DROP TABLE IF EXISTS appuser;',
-  'CREATE  TABLE IF NOT EXISTS  appuser(id SERIAL PRIMARY KEY, firstname VARCHAR(40) not null, lastname VARCHAR(40) not null, othername VARCHAR(40) not null, email VARCHAR(40) not null, phoneNumber VARCHAR(40) not null, username VARCHAR(40) not null, isAdmin BOOLEAN not null, registered timestamp default(now() at time zone \'utc\'))',
+  'CREATE  TABLE IF NOT EXISTS  appuser(id SERIAL PRIMARY KEY, firstname VARCHAR(40) not null, lastname VARCHAR(40) not null, othername VARCHAR(40) not null, email VARCHAR(40) not null, password VARCHAR(200) not null, phoneNumber VARCHAR(40) not null, username VARCHAR(40) not null, isAdmin BOOLEAN default(false), registered timestamp default(now() at time zone \'utc\'))',
   // 'DROP TABLE IF EXISTS meetup;',
   'CREATE  TABLE  IF NOT EXISTS meetup(id SERIAL PRIMARY KEY, createdOn timestamp default(now() at time zone \'utc\'), location VARCHAR(40) not null, images  TEXT [], happeningOn date not null, tags  VARCHAR(200) not null)',
   // 'DROP TABLE IF EXISTS question;',

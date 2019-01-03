@@ -37,19 +37,21 @@ class BaseModel {
     }
   }
 
-  async push(data) {
-    const paramValues = data.columnNames.map((x, index) => `$${index + 1}`);
-    const query = {
-      text: `INSERT INTO ${this.table}(${data.columnNames.join()}) VALUES(${paramValues.join()})`,
-      values: data.columnValues,
-    };
+  push(data) {
+    return new Promise(async (resolve, reject) => {
+      const paramValues = data.columnNames.map((x, index) => `$${index + 1}`);
+      const query = {
+        text: `INSERT INTO ${this.table}(${data.columnNames.join()}) VALUES(${paramValues.join()}) RETURNING *`,
+        values: data.columnValues,
+      };
 
-    try {
-      const queryResult = await executeQuery(query);
-      return queryResult.rows;
-    } catch (error) {
-      return error;
-    }
+      try {
+        const queryResult = await executeQuery(query);
+        resolve(queryResult.rows);
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 }
 
