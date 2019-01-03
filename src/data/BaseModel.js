@@ -21,20 +21,28 @@ class BaseModel {
   }
 
   find(conditions = []) {
-    const results = this.filter(conditions);
-    return results[0];
+    return new Promise(async (resolve, reject) => {
+      try {
+        const results = await this.filter(conditions);
+        resolve(results[0]);
+      } catch (error) {
+        reject(error);
+      }
+    });
   }
 
   async filter(conditions = []) {
-    const query = {
-      text: `SELECT * from ${this.table} WHERE ${conditions.join(' AND ')}`,
-    };
-    try {
-      const queryResult = await executeQuery(query);
-      return queryResult.rows;
-    } catch (error) {
-      return error;
-    }
+    return new Promise(async (resolve, reject) => {      
+      const query = {
+        text: `SELECT * from ${this.table} WHERE ${conditions.join(' AND ')}`,
+      };
+      try {
+        const queryResult = await executeQuery(query);
+        return resolve(queryResult.rows);
+      } catch (error) {
+        return reject(error);
+      }
+    });
   }
 
   push(data) {
