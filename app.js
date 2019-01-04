@@ -43,7 +43,7 @@ app.use(async (req, res, next) => {
 
   // every other route are authenticated
   // through jwt authentication token
-  try {    
+  try {
     const user = await userModule.authUser(req.headers.authorization);
     if (user) {
       req.userData = user;

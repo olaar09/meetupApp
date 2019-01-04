@@ -1,6 +1,7 @@
 const express = require('express');
 const HttpStatus = require('http-status-codes');
 const Validator = require('validatorjs');
+const ErrorString = require('../../helpers/repsonseStringHelper');
 
 const getModule = require('../../modules');
 const responseHelper = require('../../helpers/responseHelper');
@@ -10,12 +11,10 @@ const router = express.Router();
 
 const createMeetupDataValidateRules = {
   location: 'required',
-  images: 'array',
+  images: 'array|required',
   topic: 'required',
   happeningOn: 'required',
-  tags: 'required',
-  // createdOn.
-  // id,
+  tags: 'array|required',
 };
 
 const rsvpMeetupValidateRules = {
@@ -67,6 +66,9 @@ router.get('/upcoming', async (req, res) => {
 /* POST: create a  meetup. */
 router.post('/', async (req, res) => {
   const validation = new Validator(req.body, createMeetupDataValidateRules);
+  if (!req.userData.isadmin) {
+    return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorString.unauthorized);
+  }
   if (validation.fails()) {
     return responseHelper.endResponse(res, HttpStatus.UNPROCESSABLE_ENTITY, validation.errors);
   }

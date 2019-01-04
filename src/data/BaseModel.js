@@ -32,9 +32,9 @@ class BaseModel {
   }
 
   async filter(conditions = []) {
-    return new Promise(async (resolve, reject) => {      
+    return new Promise(async (resolve, reject) => {
       const query = {
-        text: `SELECT * from ${this.table} WHERE ${conditions.join(' AND ')}`,
+        text: `SELECT * from ${this.table} ${conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''}`,
       };
       try {
         const queryResult = await executeQuery(query);

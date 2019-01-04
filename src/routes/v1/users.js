@@ -23,7 +23,7 @@ const createUserDataValidateRules = {
   othername: 'required',
   phoneNumber: 'numeric|required',
   username: 'required',
-  isAdmin: 'integer',
+  isAdmin: 'boolean',
   // registered: 'requ'
 };
 

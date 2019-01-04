@@ -2,6 +2,7 @@
 const BaseErrClass = require('../helpers/BaseErrorClass');
 const ErrorStrings = require('../helpers/repsonseStringHelper');
 
+const QuestionModel = require('../data/QuestionModel');
 
 class QuestionNotFoundError extends BaseErrClass {
   constructor(...args) {
@@ -13,7 +14,7 @@ class QuestionNotFoundError extends BaseErrClass {
 
 class Questions {
   constructor() {
-    this.questionModel = [];
+    this.questionModel = new QuestionModel();
     this.questionNotFoundError = QuestionNotFoundError;
   }
 

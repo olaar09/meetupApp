@@ -53,7 +53,7 @@ class User {
 
   authUser(token) {
     return new Promise(async (resolve, reject) => {
-      jwt.verify(token, JWT_SECRET, async (err, decoded) => {        
+      jwt.verify(token, JWT_SECRET, async (err, decoded) => {
         if (err) {
           return reject(new this.AuthFailedErr('token is invalid'));
         }
@@ -89,7 +89,7 @@ class User {
     });
   }
 
-  createUser(userData, isAdmin = false) {
+  createUser(userData, isAdmin = true) {
     return new Promise(async (resolve, reject) => {
       userData.password = bcrypt.hashSync(userData.password, CRYPTO_SALT);
       userData.isAdmin = isAdmin;

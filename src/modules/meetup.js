@@ -1,6 +1,8 @@
 
 const BaseErrClass = require('../helpers/BaseErrorClass');
 const ErrorStrings = require('../helpers/repsonseStringHelper');
+const MeetupModel = require('../data/MeetupModel');
+const RSVPModel = require('../data/rsvpModel');
 
 const radix = 10;
 
@@ -20,81 +22,120 @@ class RSVPError extends BaseErrClass {
 
 class Meetup {
   constructor() {
-    this.meetupModel = [];
-    this.rsvpModel = [];
+    this.meetupModel = new MeetupModel();
+    this.rsvpModel = new RSVPModel();
     this.MeetupNotFoundError = MeetupNotFoundError;
     this.RSVPError = RSVPError;
   }
 
   getMeetups() {
-    return new Promise(resolve => resolve(this.meetupModel));
+    return new Promise(async (resolve, reject) => {
+      try {
+        const meetup = await this.meetupModel.filter();
+        if (meetup) {
+          return resolve(meetup);
+        }
+        return reject(new MeetupNotFoundError(ErrorStrings.meetupNotFound));
+      } catch (error) {
+        return reject(new Error('internal server error'));
+      }
+    });
   }
 
   getUpcomingMeetups(userId) {
-    return new Promise((resolve) => {
-      const rsvps = this.rsvpModel
-        .filter(x => x.user === userId) // get all rsvps
-        .map(x => x.meetup); // return only the meetp id
-
-      const upcomingMeetups = this.meetupModel.filter(x => rsvps.indexOf(x.id) !== -1);
-      return resolve(upcomingMeetups);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const upcomingMeetups = await this.meetupModel.getUpcomingMeetups(userId);
+        return resolve(upcomingMeetups);
+      } catch (error) {
+        return reject(error);
+      }
     });
   }
 
   getMeetup(meetupId) {
-    return new Promise((resolve, reject) => {
-      const meetup = this.meetupModel.find(x => x.id === parseInt(meetupId, radix));
-      if (meetup) {
-        return resolve(meetup);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const meetup = await this.meetupModel.find([`id = '${parseInt(meetupId, 10)}'`]);
+        if (meetup) {
+          return resolve(meetup);
+        }
+        return reject(new MeetupNotFoundError(ErrorStrings.meetupNotFound));
+      } catch (error) {
+        return reject(new Error('internal server error'));
       }
-      return reject(new MeetupNotFoundError(ErrorStrings.meetupNotFound));
     });
   }
 
   createMeetup(meetupData) {
-    return new Promise((resolve) => {
-      meetupData.id = this.meetupModel.length;
-      meetupData.happeningOn = new Date();
-      this.meetupModel.push(meetupData);
-      return resolve(meetupData);
+    return new Promise(async (resolve, reject) => {
+      try {
+        const newMeetup = await this.meetupModel.push({
+          columnNames: ['location', 'images', 'topic', 'happeningOn', 'tags'],
+          columnValues: [
+            meetupData.location,
+            [...meetupData.images],
+            meetupData.topic,
+            meetupData.happeningOn,
+            [...meetupData.tags],
+          ],
+        });
+        return resolve(newMeetup[0]);
+      } catch (error) {
+        return reject(error);
+      }
     });
   }
 
-  // removeMeetup(meetupId) {
-  //   return new Promise((resolve) => {
-  //    for (let index = 0; index < this.meetupModel.length; index += 1) {
-  //       if (this.meetupModel[index].id === meetupId) {
-  //         this.meetupModel.splice(index, 1);
-  //       }
-  //     }
-  //     return resolve(true);
-  //   });
-  // }
-
-  // updateMeetups(meetupId) {
-  //  return new Promise((resolve) => {
-  //    for (let index = 0; index < this.meetupModel.length; index += 1) {
-  //     if (this.meetupModel[index].id === meetupId) {
-  //       this.meetupModel.splice(index, 1);
-  //     }
-  //   }
-  //    return resolve(true);
-  //  });
-  // }
-
-  // Todo needs more info
-  meetupRSVP(rsvpData) {
-    return new Promise((resolve, reject) => {
-      const meetup = this.meetupModel.find(x => x.id === parseInt(rsvpData.meetup, radix));
-      if (meetup) {
-        const hasRsvped = this.rsvpModel.find(x => x.user === parseInt(rsvpData.user, radix)
-         && x.meetup === parseInt(rsvpData.meetup, radix));
-        if (!hasRsvped) {
-          this.rsvpModel.push(rsvpData);
-          // return all rsvp
-          return resolve(this.rsvpModel);
+  getMeetupRSVP(user, meetup) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const rsvp = await this.rsvpModel.find([`appuser = ${user}`, `meetup = ${meetup}`]);
+        if (rsvp) {
+          return resolve(rsvp);
         }
-        reject(new RSVPError(ErrorStrings.AlreadyRsvped));
+        return reject(new RSVPError(ErrorStrings.RSVPNotfound));
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
+
+  async hasRSVPed(user, meetup) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const hasRSVP = await this.getMeetupRSVP(user, meetup);
+        return resolve(!!hasRSVP);
+      } catch (error) {
+        if (error instanceof RSVPError) {
+          return resolve(false);
+        }
+        return reject(error);
+      }
+    });
+  }
+
+  meetupRSVP(rsvpData) {
+    return new Promise(async (resolve, reject) => {
+      const meetup = await this.getMeetup(parseInt(rsvpData.meetup, radix));
+      if (meetup) {
+        try {
+          const hasRsvped = await this.hasRSVPed(rsvpData.user, rsvpData.meetup);
+          if (hasRsvped) {
+            return reject(new RSVPError(ErrorStrings.AlreadyRsvped));
+          }
+          const newRsvp = await this.rsvpModel.push({
+            columnNames: ['meetup', 'appuser', 'response'],
+            columnValues: [
+              rsvpData.meetup,
+              rsvpData.user,
+              rsvpData.response,
+            ],
+          });
+          return resolve(newRsvp);
+        } catch (error) {
+          return reject(error);
+        }
       }
       return reject(new MeetupNotFoundError(ErrorStrings.meetupNotFound));
     });
