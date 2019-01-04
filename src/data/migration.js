@@ -7,7 +7,7 @@ const queries = [
   // 'DROP TABLE IF EXISTS meetup;',
   'CREATE  TABLE  IF NOT EXISTS meetup(id SERIAL PRIMARY KEY, createdOn timestamp default(now() at time zone \'utc\'), location VARCHAR(40) not null, images  TEXT [], happeningOn date not null, tags  VARCHAR(200) not null, topic  VARCHAR(200) not null)',
   // 'DROP TABLE IF EXISTS question;',
-  'CREATE TABLE  IF NOT EXISTS question(id SERIAL PRIMARY KEY, createdOn timestamp default(now() at time zone \'utc\'), createBy integer not null, meetup integer not null, title VARCHAR(40) not null, body VARCHAR(500) not null, votes integer not null)',
+  'CREATE TABLE  IF NOT EXISTS question(id SERIAL PRIMARY KEY, createdOn timestamp default(now() at time zone \'utc\'), createdBy integer not null, meetup integer not null, title VARCHAR(40) not null, body VARCHAR(500) not null, votes integer not null)',
   // 'DROP TABLE IF EXISTS rsvp;',
   'create type rsvp_responses as enum(\'yes\', \'no\')',
   // 'DROP TABLE IF EXISTS rsvp;',

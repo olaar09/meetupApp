@@ -62,9 +62,9 @@ class User {
           if (user) {
             return resolve(User.returnUserData(user));
           }
-          return new this.NotFoundErr('user not found');
+          return reject(new this.NotFoundErr('user not found'));
         } catch (error) {
-          return new Error('internal server error');
+          return reject(new Error('errror getting user'));
         }
       });
     });
@@ -84,7 +84,7 @@ class User {
         }
         return reject(new this.AuthFailedErr('user not found'));
       } catch (error) {
-        return reject(new Error('Internal server error'));
+        return reject(new Error('errror getting user'));
       }
     });
   }

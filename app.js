@@ -48,10 +48,9 @@ app.use(async (req, res, next) => {
     if (user) {
       req.userData = user;
       req.getUserId = () => getUserId(req);
-      next();
-    } else {
-      return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorStrings.authFailed);
+      return next();
     }
+    return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorStrings.authFailed);
   } catch (error) {
     if (error instanceof userModule.AuthFailedErr) {
       return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorStrings.authFailed);
@@ -61,7 +60,6 @@ app.use(async (req, res, next) => {
       HttpStatus.INTERNAL_SERVER_ERROR, ErrorStrings.internalServerError,
     );
   }
-  return false;
 });
 
 

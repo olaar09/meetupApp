@@ -6,10 +6,11 @@ const getModule = require('../../modules');
 const responseHelper = require('../../helpers/responseHelper');
 
 const questionsModule = getModule('questions');
+const meetupsModule = getModule('meetups');
+
 const router = express.Router();
 
 const createQuestionDataValidateRules = {
-  createdBy: 'integer|required',
   meetup: 'integer|required',
   title: 'required',
   body: 'required',
@@ -40,7 +41,13 @@ router.post('/', async (req, res) => {
     return responseHelper.endResponse(res, HttpStatus.UNPROCESSABLE_ENTITY, validation.errors);
   }
   try {
-    const question = await questionsModule.createQuestion(req.body);
+    const meetupExists = await meetupsModule.getMeetup(req.body.meetup);
+    if (!meetupExists) {
+      return responseHelper.endResponse(res, HttpStatus.NOT_FOUND, 'meetup not found');
+    }
+    const createdBy = req.getUserId();
+    const questionData = { ...req.body, createdBy };
+    const question = await questionsModule.createQuestion(questionData);
     return responseHelper.endResponse(res, HttpStatus.OK, question);
   } catch (error) {
     return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -77,7 +84,7 @@ router.patch('/:questionId(\\d+)/downvote', async (req, res) => {
     if (error instanceof questionsModule.questionNotFoundError) {
       return responseHelper.endResponse(res, HttpStatus.NOT_FOUND, 'question not found');
     }
-    return responseHelper.endResponse(res, HttpStatus.METHOD_FAILURE);
+    return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 });
 
