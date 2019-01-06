@@ -89,6 +89,20 @@ class User {
     });
   }
 
+  deleteUser(userId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const response = await this.userModel.remove([`id = '${parseInt(userId, 10)}'`]);
+        if (response > 0) {
+          return resolve(response);
+        }
+        return reject(new this.NotFoundErr('user not found'));
+      } catch (error) {
+        return reject(new Error('internal server error'));
+      }
+    });
+  }
+
   createUser(userData, isAdmin = true) {
     return new Promise(async (resolve, reject) => {
       userData.password = bcrypt.hashSync(userData.password, CRYPTO_SALT);
