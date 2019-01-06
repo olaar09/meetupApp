@@ -12,6 +12,8 @@ const queries = [
   'create type rsvp_responses as enum(\'yes\', \'no\')',
   // 'DROP TABLE IF EXISTS rsvp;',
   'CREATE TABLE  IF NOT EXISTS rsvp(id SERIAL PRIMARY KEY, meetup integer not null, appuser integer not null, response rsvp_responses not null)',
+  // 'DROP TABLE IF EXISTS comment;',
+  'CREATE TABLE  IF NOT EXISTS comment(id SERIAL PRIMARY KEY, question integer not null, createdBy integer not null, comment  VARCHAR(500) not null)',
 ];
 
 

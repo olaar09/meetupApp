@@ -3,6 +3,7 @@ const BaseErrClass = require('../helpers/BaseErrorClass');
 const ErrorStrings = require('../helpers/repsonseStringHelper');
 
 const QuestionModel = require('../data/QuestionModel');
+const CommentModel = require('../data/commentModel');
 
 class QuestionNotFoundError extends BaseErrClass {
   constructor(...args) {
@@ -15,6 +16,7 @@ class QuestionNotFoundError extends BaseErrClass {
 class Questions {
   constructor() {
     this.questionModel = new QuestionModel();
+    this.commentModel = new CommentModel();
     this.questionNotFoundError = QuestionNotFoundError;
   }
 
@@ -67,16 +69,27 @@ class Questions {
     });
   }
 
+  addCommentToQuestion(commentData) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const question = await this.getQuestion(commentData.question);
+        commentData.question = question.id;
+        const newComment = await this.commentModel.push(commentData);
+        resolve(newComment);
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
+
 
   voteQuestion(questionId, isUpvote = true) {
     return new Promise(async (resolve, reject) => {
       try {
         const question = await this.questionModel.voteQuestion(questionId, isUpvote);
-        console.log(question);
         return resolve(question);
       } catch (error) {
-        console.log(error);
-        return reject();
+        return reject(error);
       }
     });
   }

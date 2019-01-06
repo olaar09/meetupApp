@@ -54,6 +54,7 @@ router.post('/', async (req, res) => {
   }
 });
 
+
 /* PATCH: upvote a  question. */
 router.patch('/:questionId(\\d+)/upvote', async (req, res) => {
   const validation = new Validator(req.params, upvoteDownVoteValidations);
