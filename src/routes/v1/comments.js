@@ -6,15 +6,14 @@ const getModule = require('../../modules');
 const responseHelper = require('../../helpers/responseHelper');
 
 const commentModule = getModule('comments');
+const questionModule = getModule('questions');
 
 const router = express.Router();
 
 
 const createCommentValidateRules = {
-  meetup: 'integer|required',
-  title: 'required',
-  body: 'required',
-  votes: 'integer',
+  comment: 'required',
+  question: 'required|integer',
 };
 
 /* POST: comment on a question. */
@@ -28,7 +27,7 @@ router.post('/', async (req, res) => {
     );
   }
   try {
-    const questionExists = await this.getQuestion(req.body.question);
+    const questionExists = await questionModule.getQuestion(req.body.question);
 
     if (!questionExists) {
       return responseHelper.endResponse(
@@ -42,6 +41,10 @@ router.post('/', async (req, res) => {
     const newComment = await commentModule.addCommentToQuestion(commentData);
     return responseHelper.endResponse(res, HttpStatus.OK, newComment);
   } catch (error) {
+    if (error instanceof questionModule.questionNotFoundError) {
+      return responseHelper.endResponse(res, HttpStatus.NOT_FOUND, error.getMessage());
+    }
+
     return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
   }
 });

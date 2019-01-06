@@ -13,7 +13,14 @@ class Comment {
   addCommentToQuestion(commentData) {
     return new Promise(async (resolve, reject) => {
       try {
-        const newComment = await this.commentModel.push(commentData);
+        const newComment = await this.commentModel.push({
+          columnNames: ['question', 'createdBy', 'comment'],
+          columnValues: [
+            commentData.question,
+            commentData.createdBy,
+            commentData.comment,
+          ],
+        });
         resolve(newComment);
       } catch (error) {
         reject(error);

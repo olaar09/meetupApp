@@ -31,7 +31,7 @@ class BaseModel {
     });
   }
 
-  async filter(conditions = []) {
+  filter(conditions = []) {
     return new Promise(async (resolve, reject) => {
       const query = {
         text: `SELECT * from ${this.table} ${conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : ''}`,
@@ -39,6 +39,20 @@ class BaseModel {
       try {
         const queryResult = await executeQuery(query);
         return resolve(queryResult.rows);
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  }
+
+  remove(conditions = []) {
+    return new Promise(async (resolve, reject) => {
+      const query = {
+        text: `DELETE  from ${this.table} WHERE ${conditions.join(' AND ')}`,
+      };
+      try {
+        const queryResult = await executeQuery(query);
+        return resolve(queryResult.rowCount);
       } catch (error) {
         return reject(error);
       }

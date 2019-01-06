@@ -48,6 +48,21 @@ router.get('/:id(\\d+)', async (req, res) => {
   }
 });
 
+/* GET: get a specific meetup  */
+router.delete('/:id(\\d+)', async (req, res) => {
+  try {
+    const response = await meetupModule.deleteMeetup(req.params.id);
+    return responseHelper.endResponse(res, HttpStatus.OK, response);
+  } catch (error) {
+    if (error instanceof meetupModule.MeetupNotFoundError) {
+      return responseHelper.endResponse(res, HttpStatus.NOT_FOUND,
+        error.getMessage());
+    }
+    return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+});
+
+
 /* GET: get a upcoming meetups for a user */
 router.get('/upcoming', async (req, res) => {
   try {

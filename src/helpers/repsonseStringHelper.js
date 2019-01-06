@@ -1,5 +1,6 @@
 const errStrings = {
   meetupNotFound: 'Meetup not found',
+  userNotFound: 'user not found',
   AlreadyRsvped: 'A user can only rsvp ones per meetup',
   RSVPNotfound: 'RSVP not found',
   questionNotFound: 'Question not found',

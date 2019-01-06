@@ -67,6 +67,20 @@ class Meetup {
     });
   }
 
+  deleteMeetup(meetupId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const response = await this.meetupModel.remove([`id = '${parseInt(meetupId, 10)}'`]);
+        if (response > 0) {
+          return resolve(response);
+        }
+        return reject(new MeetupNotFoundError(ErrorStrings.meetupNotFound));
+      } catch (error) {
+        return reject(new Error('internal server error'));
+      }
+    });
+  }
+
   createMeetup(meetupData) {
     return new Promise(async (resolve, reject) => {
       try {
