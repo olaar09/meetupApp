@@ -2,30 +2,42 @@
 const assert = require('assert');
 
 const getModule = require('../src/modules');
+const client = require('../src/data/connectToDb');
 
 const userModule = getModule('users');
 
 const userMockData = {
-  id: 20,
   password: '111111',
   email: 'saboki11@gmail.com',
   firstname: 'Yusuf',
   lastname: 'Agboola',
   othername: 'Oladipupo',
   username: 'olaar09',
+  phoneNumber: '08184424512',
+  isAdmin: false,
 };
+
+after(() => {
+  client.end();
+});
 
 describe('Authenticate a user with a token', () => {
   const userWrongToken = 'o45y78werufiodjlkcxwerfre';
   let userData = {};
 
-  beforeEach(() => new Promise(async (resolve) => {
-    userData = await userModule.createUser(userMockData);
-    resolve(userData);
-  }));
+  describe('Authenticate userr with right token', () => {
+    beforeEach(() => new Promise(async (resolve, rejects) => {
+      try {
+        userData = await userModule.createUser(userMockData);
+        resolve(userData);
+      } catch (error) {
+        rejects(error);
+      }
+    }));
 
-  it('it should not reject user with correct token', async () => {
-    await assert.doesNotReject(() => userModule.authUser(userData.jwt));
+    it('it should not reject user with correct token', async () => {    
+      await assert.doesNotReject(() => userModule.authUser(userData.userJwt));
+    });
   });
 
   it('It should reject  auth a user with wrong token', async () => {
@@ -45,18 +57,26 @@ describe('create a new user [POST /users :param userData<Object> ]', () => {
 
 
 describe('get a user [GET /users :param userId<Integer> ]', () => {
-  const invalidUserId = 500;
+  const invalidUserId = 5000;
 
-  let user = {};
-  beforeEach(() => new Promise(async (resolve) => {
-    user = await userModule.createUser(userMockData);
-    resolve(user);
-  }));
+  describe('', () => {
+    let user = {};
 
-  it('it should not throw an exception  while getting a user', async () => {
-    const { userData } = user;
-    await assert.doesNotReject(() => userModule.getUser(userData.id));
+    beforeEach(() => new Promise(async (resolve, rejects) => {
+      try {
+        user = await userModule.createUser(userMockData);
+        resolve(user);
+      } catch (error) {
+        rejects(error);
+      }
+    }));
+
+    it('it should not throw an exception  while getting a user', async () => {
+      const { userData } = user;
+      await assert.doesNotReject(() => userModule.getUser(userData.id));
+    });
   });
+
 
   it('It should reject  for invalid userId', async () => {
     await assert.rejects(() => userModule.getUser(invalidUserId));

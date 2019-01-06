@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
 const BaseErrClass = require('../helpers/BaseErrorClass');
+const UserModel = require('../data/userModel');
 
 // const errCodes = require('../helpers/appErrorCodeHelper');
 // const errStrings = require('../helpers/repsonseStringHelper');
@@ -27,58 +28,104 @@ class UserNotFoundError extends Error {
   }
 }
 
-// Important todo user error codes;
+
 class User {
   constructor() {
-    this.userModel = [];
+    this.userModel = new UserModel();
     this.AuthFailedErr = UserAuthFailedError;
     this.NotFoundErr = UserNotFoundError;
   }
 
   getUser(userId) {
-    return new Promise((resolve, reject) => {
-      const user = this.userModel.find(x => x.id === parseInt(userId, 10));
-      if (user) {
-        return resolve(User.returnUserData(user));
+    return new Promise(async (resolve, reject) => {
+      try {
+        const user = await this.userModel.find([`id = '${parseInt(userId, 10)}'`]);
+        if (user) {
+          return resolve(User.returnUserData(user));
+        }
+        return reject(new this.NotFoundErr('user not found'));
+      } catch (error) {
+        return reject(new Error('internal server error'));
       }
-      return reject(new this.NotFoundErr('user not found'));
     });
   }
 
 
   authUser(token) {
-    return new Promise((resolve, reject) => {
-      const user = this.userModel.find(x => x.jwtToken === token);
-      if (user) {
-        return resolve(User.returnUserData(user));
-      }
-      return reject(new this.AuthFailedErr('token is invalid'));
+    return new Promise(async (resolve, reject) => {
+      jwt.verify(token, JWT_SECRET, async (err, decoded) => {
+        if (err) {
+          return reject(new this.AuthFailedErr('token is invalid'));
+        }
+        try {
+          const user = await this.userModel.find([`id = '${decoded.id}'`]);
+          if (user) {
+            return resolve(User.returnUserData(user));
+          }
+          return reject(new this.NotFoundErr('user not found'));
+        } catch (error) {
+          return reject(new Error('errror getting user'));
+        }
+      });
     });
   }
 
   loginUser(userData) {
-    return new Promise((resolve, reject) => {
-      const user = this.userModel.find(x => x.email === userData.email);
-      if (user) {
-        const passwordIsValidbcrypt = bcrypt.compareSync(userData.password, user.password);
-        if (!passwordIsValidbcrypt) {
-          return reject(new this.AuthFailedErr('password incorrect'));
+    return new Promise(async (resolve, reject) => {
+      try {
+        const user = await this.userModel.find([`email = '${userData.email}'`]);
+        if (user) {
+          const passwordIsValidbcrypt = bcrypt.compareSync(userData.password, user.password);
+          if (!passwordIsValidbcrypt) {
+            return reject(new this.AuthFailedErr('password incorrect'));
+          }
+          const userJwt = User.getSignJWT(user.id);
+          return resolve({ userJwt, userData: User.returnUserData(user) });
         }
-        const userJwt = User.getSignJWT(user.id);
-        return resolve({ userJwt, userData: User.returnUserData(user) });
+        return reject(new this.AuthFailedErr('user not found'));
+      } catch (error) {
+        return reject(new Error('errror getting user'));
       }
-      return reject(new this.AuthFailedErr('user not found'));
     });
   }
 
-  createUser(userData) {
-    return new Promise(async (resolve) => {
-      userData.id = this.userModel.length;
-      userData.registered = new Date();
-      const userJwt = User.getSignJWT(userData.id);
+  deleteUser(userId) {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const response = await this.userModel.remove([`id = '${parseInt(userId, 10)}'`]);
+        if (response > 0) {
+          return resolve(response);
+        }
+        return reject(new this.NotFoundErr('user not found'));
+      } catch (error) {
+        return reject(new Error('internal server error'));
+      }
+    });
+  }
+
+  createUser(userData, isAdmin = true) {
+    return new Promise(async (resolve, reject) => {
       userData.password = bcrypt.hashSync(userData.password, CRYPTO_SALT);
-      this.userModel.push(userData);
-      return resolve({ userJwt, userData: User.returnUserData(userData) });
+      userData.isAdmin = isAdmin;
+      try {
+        const newUser = await this.userModel.push({
+          columnNames: ['firstname', 'lastname', 'othername', 'phoneNumber', 'email', 'username', 'isAdmin', 'password'],
+          columnValues: [
+            userData.firstname,
+            userData.lastname,
+            userData.othername,
+            userData.phoneNumber,
+            userData.email,
+            userData.username,
+            userData.isAdmin,
+            userData.password,
+          ],
+        });
+        const userJwt = User.getSignJWT(newUser[0].id);
+        return resolve({ userJwt, userData: User.returnUserData(newUser[0]) });
+      } catch (error) {
+        return reject(error);
+      }
     });
   }
 
