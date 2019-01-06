@@ -2,6 +2,7 @@
 const assert = require('assert');
 
 const getModule = require('../src/modules');
+const client = require('../src/data/connectToDb');
 
 const userModule = getModule('users');
 
@@ -15,6 +16,10 @@ const userMockData = {
   phoneNumber: '08184424512',
   isAdmin: false,
 };
+
+after(() => {
+  client.end();
+});
 
 describe('Authenticate a user with a token', () => {
   const userWrongToken = 'o45y78werufiodjlkcxwerfre';

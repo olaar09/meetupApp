@@ -5,6 +5,8 @@ const getModule = require('../src/modules');
 
 const meetupModule = getModule('meetups');
 
+const client = require('../src/data/connectToDb');
+
 const meetupData = {
   location: 'Lekki, Banana island ',
   images: ['img1.jpg', 'img2.jpg'],
@@ -19,6 +21,11 @@ const rsvpData = {
   user: 1,
   response: 'yes',
 };
+
+
+after(() => {
+  client.end();
+});
 
 
 describe('get all meetups [GET /meetups ]', () => {

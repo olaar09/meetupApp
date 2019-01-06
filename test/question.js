@@ -2,6 +2,8 @@
 const assert = require('assert');
 
 const getModule = require('../src/modules');
+const client = require('../src/data/connectToDb');
+
 
 const questionModule = getModule('questions');
 const questionData = {
@@ -11,6 +13,10 @@ const questionData = {
   votes: 0,
   createdBy: 4,
 };
+
+after(() => {
+  client.end();
+});
 
 describe('Create a question [POST /questions :param questionData<Object> ]', () => {
   it('it should not throw an exception  while creating a new question', async () => {
