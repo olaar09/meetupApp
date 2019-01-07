@@ -59,7 +59,7 @@ describe('POST: RSVP a meetup [POST /meetups/<id>/rsvps :param rsvpData<Object> 
   let meetupAdded = {};
   before(() => new Promise(async (resolve, reject) => {
     try {
-      meetupAdded = await meetupModule.createMeetup(meetupData);      
+      meetupAdded = await meetupModule.createMeetup(meetupData);
       resolve(meetupAdded);
     } catch (error) {
       reject(error);

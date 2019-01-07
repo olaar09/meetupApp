@@ -35,7 +35,7 @@ describe('Authenticate a user with a token', () => {
       }
     }));
 
-    it('it should not reject user with correct token', async () => {    
+    it('it should not reject user with correct token', async () => {
       await assert.doesNotReject(() => userModule.authUser(userData.userJwt));
     });
   });
