@@ -1,3 +1,3 @@
 # Meetup App! 
 
-[![Build Status](https://travis-ci.org/travis-ci/travis-web.svg?branch=master)](https://travis-ci.org/travis-ci/travis-web)
+[![Build Status](https://travis-ci.org/olaar09/meetupApp.svg?branch=develop)](https://travis-ci.org/olaar09/meetupApp)

@@ -29,10 +29,9 @@ describe('get a question [GET /questions :param id<int> ]', () => {
   let questionAdded = {};
   before(() => new Promise(async (resolve, reject) => {
     try {
-      [questionAdded] = await questionModule.createQuestion(questionData);      
+      [questionAdded] = await questionModule.createQuestion(questionData);
       resolve(questionAdded[0]);
     } catch (error) {
-      console.log(error);
       reject(error);
     }
   }));

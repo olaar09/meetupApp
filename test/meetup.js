@@ -13,7 +13,6 @@ const meetupData = {
   topic: 'Mocha test one',
   happeningOn: new Date(),
   tags: ['#cool', '#makenigeriagreatagain'],
-  // appuser: 1,
 };
 
 
@@ -37,7 +36,6 @@ describe('get all meetups [GET /meetups ]', () => {
 
 
 describe('get a meetup [GET /meetups :param id<int> ]', () => {
-  // add meetup
   let meetupAdded = {};
   before(() => new Promise(async (resolve) => {
     meetupAdded = await meetupModule.createMeetup(meetupData);
@@ -61,7 +59,7 @@ describe('POST: RSVP a meetup [POST /meetups/<id>/rsvps :param rsvpData<Object> 
   let meetupAdded = {};
   before(() => new Promise(async (resolve, reject) => {
     try {
-      meetupAdded = await meetupModule.createMeetup(meetupData);      
+      meetupAdded = await meetupModule.createMeetup(meetupData);
       resolve(meetupAdded);
     } catch (error) {
       reject(error);
