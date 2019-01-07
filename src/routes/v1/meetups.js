@@ -1,6 +1,7 @@
 const express = require('express');
 const HttpStatus = require('http-status-codes');
 const Validator = require('validatorjs');
+const ErrorString = require('../../helpers/repsonseStringHelper');
 
 const getModule = require('../../modules');
 const responseHelper = require('../../helpers/responseHelper');
@@ -10,12 +11,10 @@ const router = express.Router();
 
 const createMeetupDataValidateRules = {
   location: 'required',
-  images: 'array',
+  images: 'array|required',
   topic: 'required',
   happeningOn: 'required',
-  tags: 'required',
-  // createdOn.
-  // id,
+  tags: 'array|required',
 };
 
 const rsvpMeetupValidateRules = {
@@ -49,6 +48,21 @@ router.get('/:id(\\d+)', async (req, res) => {
   }
 });
 
+/* GET: get a specific meetup  */
+router.delete('/:id(\\d+)', async (req, res) => {
+  try {
+    const response = await meetupModule.deleteMeetup(req.params.id);
+    return responseHelper.endResponse(res, HttpStatus.OK, response);
+  } catch (error) {
+    if (error instanceof meetupModule.MeetupNotFoundError) {
+      return responseHelper.endResponse(res, HttpStatus.NOT_FOUND,
+        error.getMessage());
+    }
+    return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
+  }
+});
+
+
 /* GET: get a upcoming meetups for a user */
 router.get('/upcoming', async (req, res) => {
   try {
@@ -67,6 +81,9 @@ router.get('/upcoming', async (req, res) => {
 /* POST: create a  meetup. */
 router.post('/', async (req, res) => {
   const validation = new Validator(req.body, createMeetupDataValidateRules);
+  if (!req.userData.isadmin) {
+    return responseHelper.endResponse(res, HttpStatus.UNAUTHORIZED, ErrorString.unauthorized);
+  }
   if (validation.fails()) {
     return responseHelper.endResponse(res, HttpStatus.UNPROCESSABLE_ENTITY, validation.errors);
   }

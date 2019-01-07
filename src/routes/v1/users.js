@@ -21,9 +21,9 @@ const createUserDataValidateRules = {
   firstname: 'required',
   lastname: 'required',
   othername: 'required',
-  phoneNumber: 'numeric',
+  phoneNumber: 'numeric|required',
   username: 'required',
-  isAdmin: 'integer',
+  isAdmin: 'boolean',
   // registered: 'requ'
 };
 
@@ -53,7 +53,7 @@ router.post('/', async (req, res) => {
     const user = await userModule.createUser(req.body);
     return responseHelper.endResponse(res, HttpStatus.OK, user);
   } catch (error) {
-    return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR);
+    return responseHelper.endResponse(res, HttpStatus.INTERNAL_SERVER_ERROR, error.getMessage());
   }
 });
 

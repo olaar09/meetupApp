@@ -6,10 +6,12 @@
 const MeetupsModule = require('./meetup');
 const QuestionsModule = require('./questions');
 const UsersModule = require('./users');
+const CommentsModule = require('./comments');
 
 let meetupModuleInstance = null;
 let questionModuleInstance = null;
 let usersModuleInstance = null;
+let commentsModuleInstance = null;
 
 const getModule = (moduleName) => {
   switch (moduleName) {
@@ -28,6 +30,11 @@ const getModule = (moduleName) => {
         usersModuleInstance = new UsersModule();
       }
       return usersModuleInstance;
+    case 'comments':
+      if (commentsModuleInstance === null) {
+        commentsModuleInstance = new CommentsModule();
+      }
+      return commentsModuleInstance;
     default:
       break;
   }
