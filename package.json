@@ -5,7 +5,8 @@
   "scripts": {
     "start": "nodemon  ./bin/www",
     "migrate": "node  ./src/data/migration.js",
-    "test": "./node_modules/.bin/mocha --reporter spec"
+    "test": "./node_modules/.bin/mocha --reporter spec",
+    "coverage": "node node_modules/.bin/istanbul cover _mocha -- -R spec"
   },
   "dependencies": {
     "bcrypt": "^3.0.3",
